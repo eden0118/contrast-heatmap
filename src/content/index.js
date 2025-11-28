@@ -37,14 +37,28 @@ function getEffectiveBackgroundColor(element) {
 
 /**
  * Create and inject the canvas overlay
+ * Full page height to capture all content
  */
 function createCanvasOverlay() {
   if (canvas) return;
 
   canvas = document.createElement('canvas');
   canvas.id = 'contrast-heatmap-overlay';
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+
+  // Set canvas to cover the entire page, not just viewport
+  const scrollHeight = Math.max(
+    document.documentElement.scrollHeight,
+    document.body.scrollHeight,
+    window.innerHeight
+  );
+  const scrollWidth = Math.max(
+    document.documentElement.scrollWidth,
+    document.body.scrollWidth,
+    window.innerWidth
+  );
+
+  canvas.width = scrollWidth;
+  canvas.height = scrollHeight;
 
   Object.assign(canvas.style, {
     position: 'fixed',
@@ -73,9 +87,25 @@ function getFontSize(element) {
 
 /**
  * Scan DOM for text nodes and draw contrast issues on canvas
+ * Checks entire document, not just viewport
  */
 function scanForContrastIssues() {
   if (!canvas || !ctx) return;
+
+  // Update canvas size to match full document
+  const scrollHeight = Math.max(
+    document.documentElement.scrollHeight,
+    document.body.scrollHeight,
+    window.innerHeight
+  );
+  const scrollWidth = Math.max(
+    document.documentElement.scrollWidth,
+    document.body.scrollWidth,
+    window.innerWidth
+  );
+
+  canvas.width = scrollWidth;
+  canvas.height = scrollHeight;
 
   // Clear previous drawings
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -146,6 +176,9 @@ function enableHeatmap() {
   canvas.style.display = 'block';
   scanForContrastIssues();
   isEnabled = true;
+
+  // Add scroll listener to clear overlay when scrolling
+  window.addEventListener('scroll', disableHeatmap, { once: true });
 }
 
 /**

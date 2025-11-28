@@ -114,20 +114,20 @@ export default function App() {
       {/* Legend */}
       <div className="mt-6 pt-6 border-t border-gray-200">
         <h3 className="text-sm font-semibold text-gray-900 mb-3">
-          WCAG Levels
+          Color Guide
         </h3>
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#3B82F6' }}></div>
-            <span className="text-xs text-gray-700">Fail (Ratio &lt; 4.5:1)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#FB923C' }}></div>
-            <span className="text-xs text-gray-700">AA (4.5:1 - 6.9:1)</span>
-          </div>
-          <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded" style={{ backgroundColor: '#EF4444' }}></div>
-            <span className="text-xs text-gray-700">AAA (7:1+)</span>
+            <span className="text-xs text-gray-700">Issues - Needs work</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#EAB308' }}></div>
+            <span className="text-xs text-gray-700">Attention - AA standard</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#3B82F6' }}></div>
+            <span className="text-xs text-gray-700">AAA - Fully compliant</span>
           </div>
         </div>
       </div>

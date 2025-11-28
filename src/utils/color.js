@@ -111,15 +111,16 @@ export function getWCAGLevel(ratio, size = 'normal') {
 
 /**
  * Get color for heatmap visualization
+ * Red = Issues, Yellow = Needs Attention, Blue = AAA Compliant
  * @param {string} level - 'fail', 'aa', or 'aaa'
  * @param {number} opacity - Opacity value (0-1)
  * @returns {string} RGBA color string
  */
 export function getHeatmapColor(level, opacity = 0.3) {
   const colors = {
-    fail: 'rgba(59, 130, 246, ',  // Blue
-    aa: 'rgba(251, 146, 60, ',    // Orange
-    aaa: 'rgba(239, 68, 68, '     // Red
+    fail: 'rgba(239, 68, 68, ',       // Red - Issues
+    aa: 'rgba(234, 179, 8, ',         // Yellow - Needs Attention
+    aaa: 'rgba(59, 130, 246, '        // Blue - AAA Compliant
   };
 
   return (colors[level] || colors.fail) + opacity + ')';
