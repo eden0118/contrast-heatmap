@@ -1,7 +1,7 @@
 import {
   parseColor,
-  calculateContrastRatio,
-  getWCAGLevel,
+  calculateAPCAContrast,
+  getAPCALevel,
   getHeatmapColor
 } from '../utils/color.js';
 
@@ -172,10 +172,9 @@ function scanForContrastIssues() {
         const fgColor = parseColor(window.getComputedStyle(parentElement).color);
         const bgColor = getEffectiveBackgroundColor(parentElement);
 
-        // Calculate contrast
-        const ratio = calculateContrastRatio(fgColor, bgColor);
-        const fontSize = getFontSize(parentElement);
-        const level = getWCAGLevel(ratio, fontSize);
+        // Calculate APCA contrast
+        const lc = calculateAPCAContrast(fgColor, bgColor);
+        const level = getAPCALevel(lc);
 
         // Draw on canvas using document coordinates
         const color = getHeatmapColor(level, opacity);

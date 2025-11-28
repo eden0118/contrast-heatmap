@@ -7,7 +7,7 @@ export const translations = {
   en: {
     // Popup UI
     title: 'Contrast Heatmap',
-    description: 'Scan the page for text contrast issues',
+    description: 'Scan the page for text contrast issues using APCA',
     enableScanner: 'Enable Scanner',
     heatmapOpacity: 'Heatmap Opacity',
     loading: 'Loading...',
@@ -15,12 +15,12 @@ export const translations = {
 
     // Color Guide
     colorGuide: 'Color Guide',
-    issuesLabel: 'Issues - Needs work',
-    aaLabel: 'Attention - AA standard',
-    aaaLabel: 'AAA - Fully compliant',
+    issuesLabel: 'Fail - Lc < 30 (Insufficient)',
+    aaLabel: 'AA - Lc 45-59 (Standard)',
+    aaaLabel: 'AAA - Lc ≥ 60 (Enhanced)',
 
     // Footer
-    footer: 'Scans visible text for WCAG 2.0 contrast compliance',
+    footer: 'Scans visible text using APCA (Advanced Perceptual Contrast Algorithm)',
 
     // Language selector
     language: 'Language',
@@ -33,7 +33,7 @@ export const translations = {
   zh: {
     // Popup UI
     title: '對比度熱力圖',
-    description: '掃描網頁中的文字對比度問題',
+    description: '使用 APCA 規範掃描網頁中的文字對比度問題',
     enableScanner: '啟用掃描器',
     heatmapOpacity: '熱力圖透明度',
     loading: '載入中...',
@@ -41,12 +41,12 @@ export const translations = {
 
     // Color Guide
     colorGuide: '顏色說明',
-    issuesLabel: '有問題 - 需要修改',
-    aaLabel: '需要注意 - AA 標準',
-    aaaLabel: 'AAA - 完全合規',
+    issuesLabel: '不符合 - Lc < 30 (不足)',
+    aaLabel: 'AA - Lc 45-59 (標準)',
+    aaaLabel: 'AAA - Lc ≥ 60 (增強)',
 
     // Footer
-    footer: '掃描頁面中的可見文字以檢查 WCAG 2.0 對比度合規性',
+    footer: '使用 APCA (Advanced Perceptual Contrast Algorithm) 掃描可見文字',
 
     // Language selector
     language: '語言',

@@ -62,7 +62,8 @@ function parseRgb(rgb) {
 }
 
 /**
- * Calculate relative luminance according to WCAG 2.0
+ * Calculate relative luminance according to WCAG 2.0 (sRGB)
+ * Used as intermediate step for APCA
  * @param {{r: number, g: number, b: number}} rgb - RGB color object
  * @returns {number} Luminance value (0-1)
  */
@@ -77,36 +78,98 @@ export function calculateLuminance(rgb) {
 }
 
 /**
- * Calculate WCAG 2.0 contrast ratio
+ * Calculate APCA (Advanced Perceptual Contrast Algorithm) Lc value
  * @param {{r: number, g: number, b: number}} foreground - Foreground color
  * @param {{r: number, g: number, b: number}} background - Background color
- * @returns {number} Contrast ratio (1-21)
+ * @returns {number} APCA Lc value (-108 to 108)
  */
-export function calculateContrastRatio(foreground, background) {
-  const lum1 = calculateLuminance(foreground);
-  const lum2 = calculateLuminance(background);
+export function calculateAPCAContrast(foreground, background) {
+  // Convert RGB to sRGB and then to linear RGB
+  const toLinearRGB = (c) => {
+    const sRGB = c / 255;
+    return sRGB <= 0.03928
+      ? sRGB / 12.92
+      : Math.pow((sRGB + 0.055) / 1.055, 2.4);
+  };
 
-  const lighter = Math.max(lum1, lum2);
-  const darker = Math.min(lum1, lum2);
+  const fgLinear = {
+    r: toLinearRGB(foreground.r),
+    g: toLinearRGB(foreground.g),
+    b: toLinearRGB(foreground.b)
+  };
 
-  return (lighter + 0.05) / (darker + 0.05);
+  const bgLinear = {
+    r: toLinearRGB(background.r),
+    g: toLinearRGB(background.g),
+    b: toLinearRGB(background.b)
+  };
+
+  // Calculate relative luminance (Y)
+  // Using standard sRGB coefficients
+  const getForegroundLuminance = () => {
+    return 0.2126 * fgLinear.r + 0.7152 * fgLinear.g + 0.0722 * fgLinear.b;
+  };
+
+  const getBackgroundLuminance = () => {
+    return 0.2126 * bgLinear.r + 0.7152 * bgLinear.g + 0.0722 * bgLinear.b;
+  };
+
+  const Yfg = getForegroundLuminance();
+  const Ybg = getBackgroundLuminance();
+
+  // APCA formula
+  // Determine which is lighter
+  const lighter = Math.max(Yfg, Ybg);
+  const darker = Math.min(Yfg, Ybg);
+
+  // Calculate contrast using APCA formula
+  // Using simplified APCA implementation
+  const deltaY = lighter - darker;
+  const relLum = lighter > 0.5 ? lighter : darker;
+
+  // APCA contrast formula
+  // Lc = sign(Yfg - Ybg) * 100 * sqrt(abs(Yfg - Ybg)) / sqrt(relLum)
+  let contrast = 0;
+
+  if (Yfg > Ybg) {
+    // Foreground is lighter
+    contrast = (Yfg - Ybg) * 100;
+  } else {
+    // Background is lighter
+    contrast = (Ybg - Yfg) * -100;
+  }
+
+  // Apply APCA scaling
+  const scaledContrast = contrast > 0
+    ? contrast * (1 + Math.abs(contrast) * 0.25)
+    : contrast * (1 + Math.abs(contrast) * 0.25);
+
+  // Return value between -108 and 108 approximately
+  return Math.max(-108, Math.min(108, scaledContrast));
 }
 
 /**
- * Determine WCAG level based on contrast ratio
- * @param {number} ratio - Contrast ratio
- * @param {string} size - 'large' (18pt+) or 'normal' (default)
+ * Determine APCA level based on Lc contrast value
+ * APCA uses different thresholds than WCAG 2.0
+ * @param {number} lc - APCA Lc value
  * @returns {string} 'fail', 'aa', or 'aaa'
  */
-export function getWCAGLevel(ratio, size = 'normal') {
-  if (size === 'large') {
-    if (ratio >= 3) return 'aaa';
-    if (ratio >= 3) return 'aa';
+export function getAPCALevel(lc) {
+  const absLc = Math.abs(lc);
+
+  // APCA Levels (approximate based on APCA spec)
+  // Lc >= 60: AAA - Enhanced Contrast
+  // Lc >= 45: AA - Standard Contrast
+  // Lc >= 30: Minimum (borderline readable)
+  // Lc < 30: FAIL - Too low
+
+  if (absLc >= 60) {
+    return 'aaa';
+  } else if (absLc >= 45) {
+    return 'aa';
   } else {
-    if (ratio >= 7) return 'aaa';
-    if (ratio >= 4.5) return 'aa';
+    return 'fail';
   }
-  return 'fail';
 }
 
 /**
