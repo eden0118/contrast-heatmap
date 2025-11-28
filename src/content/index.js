@@ -61,7 +61,7 @@ function createCanvasOverlay() {
   canvas.height = scrollHeight;
 
   Object.assign(canvas.style, {
-    position: 'fixed',
+    position: 'absolute',
     top: '0',
     left: '0',
     zIndex: '99999',
@@ -86,11 +86,29 @@ function getFontSize(element) {
 }
 
 /**
+ * Check if an element is visible in the viewport
+ * @param {DOMRect} rect - The bounding rect of the element (in viewport coordinates)
+ * @returns {boolean} True if visible in viewport
+ */
+function isElementInViewport(rect) {
+  return (
+    rect.top < window.innerHeight &&
+    rect.bottom > 0 &&
+    rect.left < window.innerWidth &&
+    rect.right > 0
+  );
+}
+
+/**
  * Scan DOM for text nodes and draw contrast issues on canvas
- * Checks entire document, not just viewport
+ * Only marks elements visible in the current viewport
  */
 function scanForContrastIssues() {
   if (!canvas || !ctx) return;
+
+  // Get current scroll position first
+  const scrollX = window.scrollX || window.pageXOffset;
+  const scrollY = window.scrollY || window.pageYOffset;
 
   // Update canvas size to match full document
   const scrollHeight = Math.max(
@@ -104,11 +122,9 @@ function scanForContrastIssues() {
     window.innerWidth
   );
 
+  // Setting width/height resets the canvas (clears it)
   canvas.width = scrollWidth;
   canvas.height = scrollHeight;
-
-  // Clear previous drawings
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Create tree walker to find text nodes
   const walker = document.createTreeWalker(
@@ -140,8 +156,15 @@ function scanForContrastIssues() {
       for (const rect of rects) {
         if (rect.width === 0 || rect.height === 0) continue;
 
+        // Skip elements not in viewport
+        if (!isElementInViewport(rect)) continue;
+
+        // Convert viewport coordinates to document coordinates
+        const docLeft = rect.left + scrollX;
+        const docTop = rect.top + scrollY;
+
         // Create unique key for this rect to avoid duplicates
-        const rectKey = `${Math.round(rect.left)}-${Math.round(rect.top)}-${Math.round(rect.width)}-${Math.round(rect.height)}`;
+        const rectKey = `${Math.round(docLeft)}-${Math.round(docTop)}-${Math.round(rect.width)}-${Math.round(rect.height)}`;
         if (drawnRects.has(rectKey)) continue;
         drawnRects.add(rectKey);
 
@@ -154,10 +177,10 @@ function scanForContrastIssues() {
         const fontSize = getFontSize(parentElement);
         const level = getWCAGLevel(ratio, fontSize);
 
-        // Draw on canvas
+        // Draw on canvas using document coordinates
         const color = getHeatmapColor(level, opacity);
         ctx.fillStyle = color;
-        ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
+        ctx.fillRect(docLeft, docTop, rect.width, rect.height);
       }
     } catch (e) {
       // Skip ranges that can't be measured
@@ -177,8 +200,21 @@ function enableHeatmap() {
   scanForContrastIssues();
   isEnabled = true;
 
-  // Add scroll listener to clear overlay when scrolling
-  window.addEventListener('scroll', disableHeatmap, { once: true });
+  // Add scroll listener to rescan when scrolling
+  window.addEventListener('scroll', handleScroll, { passive: true });
+}
+
+/**
+ * Handle scroll event - rescan when page scrolls
+ */
+let scrollTimeout;
+function handleScroll() {
+  clearTimeout(scrollTimeout);
+  scrollTimeout = setTimeout(() => {
+    if (isEnabled) {
+      scanForContrastIssues();
+    }
+  }, 100); // Debounce scroll events
 }
 
 /**
@@ -188,6 +224,8 @@ function disableHeatmap() {
   if (canvas) {
     canvas.style.display = 'none';
   }
+  // Remove scroll listener when disabling
+  window.removeEventListener('scroll', handleScroll);
   isEnabled = false;
 }
 
@@ -196,8 +234,21 @@ function disableHeatmap() {
  */
 function handleResize() {
   if (canvas) {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    // Update canvas to match full document size
+    const scrollHeight = Math.max(
+      document.documentElement.scrollHeight,
+      document.body.scrollHeight,
+      window.innerHeight
+    );
+    const scrollWidth = Math.max(
+      document.documentElement.scrollWidth,
+      document.body.scrollWidth,
+      window.innerWidth
+    );
+
+    canvas.width = scrollWidth;
+    canvas.height = scrollHeight;
+
     if (isEnabled) {
       scanForContrastIssues();
     }

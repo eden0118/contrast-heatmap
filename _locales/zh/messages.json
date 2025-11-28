@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "對比度熱力圖",
+    "description": "應用程式的名稱"
+  },
+  "appDescription": {
+    "message": "掃描網頁中的文字對比度問題，並顯示熱力圖可視化",
+    "description": "應用程式的描述"
+  }
+}

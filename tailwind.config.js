@@ -3,6 +3,7 @@ export default {
   content: [
     './src/**/*.{js,jsx}'
   ],
+  darkMode: 'selector',
   theme: {
     extend: {
       colors: {
