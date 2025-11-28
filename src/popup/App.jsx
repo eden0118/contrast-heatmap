@@ -31,7 +31,9 @@ export default function App() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]) {
         const messageType = newState ? 'ENABLE_HEATMAP' : 'DISABLE_HEATMAP';
-        chrome.tabs.sendMessage(tabs[0].id, { type: messageType });
+        chrome.tabs.sendMessage(tabs[0].id, { type: messageType }).catch(() => {
+          // Silently handle if content script not yet loaded
+        });
       }
     });
   };
@@ -50,6 +52,8 @@ export default function App() {
         chrome.tabs.sendMessage(tabs[0].id, {
           type: 'UPDATE_OPACITY',
           opacity: newOpacity
+        }).catch(() => {
+          // Silently handle if content script not yet loaded
         });
       }
     });
@@ -79,18 +83,12 @@ export default function App() {
         <label className="text-sm font-medium text-gray-700">
           Enable Scanner
         </label>
-        <button
-          onClick={handleToggle}
-          className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
-            isEnabled ? 'bg-blue-500' : 'bg-gray-300'
-          }`}
-        >
-          <span
-            className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
-              isEnabled ? 'translate-x-6' : 'translate-x-1'
-            }`}
-          />
-        </button>
+        <input
+          type="checkbox"
+          checked={isEnabled}
+          onChange={handleToggle}
+          className="w-5 h-5 accent-blue-500 cursor-pointer"
+        />
       </div>
 
       {/* Opacity Slider */}
@@ -120,15 +118,15 @@ export default function App() {
         </h3>
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-fail"></div>
+            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#3B82F6' }}></div>
             <span className="text-xs text-gray-700">Fail (Ratio &lt; 4.5:1)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-aa"></div>
+            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#FB923C' }}></div>
             <span className="text-xs text-gray-700">AA (4.5:1 - 6.9:1)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-aaa"></div>
+            <div className="w-3 h-3 rounded" style={{ backgroundColor: '#EF4444' }}></div>
             <span className="text-xs text-gray-700">AAA (7:1+)</span>
           </div>
         </div>
